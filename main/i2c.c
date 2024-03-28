@@ -1,12 +1,14 @@
 #include "i2c.h"
 
-uint8_t write_bytes[BUFFER_SIZE_WRITE];
+static const char *TAG = "I2C";
+
+/*uint8_t write_bytes[BUFFER_SIZE_WRITE];
 write_bytes[0] = REG_ADDR_WRITE;
 write_bytes[1] = DATA_WRITE;
 
 uint8_t read_buffer[BUFFER_SIZE_READ];
 //uint8_t read_bytes = REG_ADDR_READ;
-uint8_t read_bytes = write_bytes[0];
+uint8_t read_bytes = write_bytes[0];*/
 
 esp_err_t init_i2c(void)
 {
@@ -28,20 +30,41 @@ esp_err_t init_i2c(void)
 
 esp_err_t device_register_read(uint8_t reg_addr, uint8_t *data, size_t len)
 {
-    //
+    ESP_ERROR_CHECK(
+            i2c_master_write_read_device(I2C_NUM_0, 
+                                        I2C_SLAVE_ADDR,
+                                        &reg_addr,
+                                        1,
+                                        data,
+                                        len,
+                                        pdMS_TO_TICKS(2000)));
+
+    ESP_LOGI(TAG, "Addr read: 0x%x",reg_addr);
+    //ESP_LOG_BUFFER_HEX(TAG, read_buffer, len);
+    for(int i=0;i<len;i++)
+    {
+        ESP_LOGI(TAG, "   Data: 0x%x",data[i]);
+    }
 
     return ESP_OK;
 }
 
 esp_err_t device_register_write_byte(uint8_t reg_addr, uint8_t data)
 {
+    uint8_t *write_bytes = (uint8_t *) malloc(2);
+    write_bytes[0] = reg_addr;
+    write_bytes[1] = data;
+
     ESP_ERROR_CHECK(
             i2c_master_write_to_device(I2C_NUM_0, 
                                         I2C_SLAVE_ADDR,
                                         (const uint8_t*)&write_bytes,
-                                        BUFFER_SIZE_WRITE,
+                                        2,
                                         pdMS_TO_TICKS(2000)));
-        ESP_LOGI(TAG, "Data written: ADRR:%x Data:%x",write_bytes[0],write_bytes[1]);
+
+    ESP_LOGI(TAG, "Bytes written:  ADRR: 0x%x Data: 0x%x",write_bytes[0],write_bytes[1]);
+
+    free(write_bytes);
 
     return ESP_OK;
 }
