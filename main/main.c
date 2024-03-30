@@ -5,11 +5,11 @@
 #include "driver/i2c.h"
 //#include "i2c.h"
 
+#define I2C_SLAVE_ADDR 0x68
+#define CLOCK_SPD 400000
+
 #define REG_ADDR_WRITE 0x33
 #define BUFFER_SIZE_READ 10
-
-#define CLOCK_SPD 400000
-#define I2C_SLAVE_ADDR 0x68
 
 static const char *TAG = "I2C";
 
@@ -87,6 +87,8 @@ void app_main(void)
     {
 
         ESP_ERROR_CHECK( device_register_write_byte(REG_ADDR_WRITE, 0xf6) );
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
                          
         ESP_ERROR_CHECK( device_register_read(REG_ADDR_WRITE, read_buffer, 1) );
 
